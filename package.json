@@ -1,0 +1,14 @@
+{
+  "name": "neuralstack",
+  "version": "0.1.0",
+  "description": "Spawn divergent-thinking whiteboards for Claude — co-think on hard problems via the NeuralStack cloud.",
+  "type": "module",
+  "bin": { "neuralstack": "bin/cli.js" },
+  "files": ["bin/", "server.js", "skill/"],
+  "scripts": { "start": "node server.js" },
+  "keywords": ["mcp", "claude", "brainstorming", "neuralstack", "reasoning"],
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  }
+}
