@@ -12,7 +12,7 @@ import { fileURLToPath, pathToFileURL } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PKG_ROOT = path.join(__dirname, "..");
-const DEFAULT_URL = "https://neuralstack.vercel.app";
+const DEFAULT_URL = "https://thinklm.vercel.app";
 // Package spec the Claude config will `npx`. Until the npm publish lands, this
 // runs straight from GitHub (no registry needed). After publishing, pass
 // `--from neuralstack` (or set NEURALSTACK_PKG=neuralstack).
