@@ -28,7 +28,7 @@ Run everything through your **Bash tool** with this package, using the `github:`
 spec (works with no install/registry):
 
 ```
-npx -y github:UditAkhourii/neuralstack <command>
+npx -y neuralstack <command>
 ```
 
 Commands:
@@ -47,12 +47,12 @@ Commands:
 
 2. **Spawn.** Run:
    ```
-   npx -y github:UditAkhourii/neuralstack create "<sharpened question>"
+   npx -y neuralstack create "<sharpened question>"
    ```
    - If it prints **"No NeuralStack API key found"**, STOP and onboard:
      > "I need your free NeuralStack API key.
      >  1. Go to **https://thinklm.vercel.app** → sign in → Settings → API key → Generate.
-     >  2. Paste it here, or run `npx -y github:UditAkhourii/neuralstack login tlm_xxx`."
+     >  2. Paste it here, or run `npx -y neuralstack login tlm_xxx`."
      Run `login` once with their key, then re-run `create`.
    - On success, parse the JSON. Give the human the **`preview_url`** verbatim:
      *"I've opened a NeuralStack board — open this link, it's already fanning out.
