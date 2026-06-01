@@ -37,6 +37,30 @@ npx -y neuralstack <command>
 
 The user can switch anytime: if they say "use my own model" / "use frontier" → run `npx -y neuralstack mode byom`; "use default" / "use hosted" → `npx -y neuralstack mode hosted`. Then proceed.
 
+## First run — onboarding (do this BEFORE spawning anything)
+
+The very first time you use this skill in a session, run:
+
+```
+npx -y neuralstack status
+```
+
+It prints `{ key_set, mode_set, mode, url }`. Then **gate on it — do not skip**:
+
+1. **If `key_set` is false** → STOP and ask the user in chat (you cannot read a terminal prompt, so ask conversationally):
+   > "NeuralStack needs your free API key. Open **https://thinklm.vercel.app**, sign in, go to **Settings → API key → Generate**, and paste the `tlm_…` key here."
+   When they paste it, run `npx -y neuralstack login <their_key>`.
+
+2. **If `mode_set` is false** → STOP and ask the user which way they want to think:
+   > "How should the divergent reasoning run?
+   >  **1) Default** — NeuralStack's hosted models do it (zero setup, free).
+   >  **2) Frontier (your own agent)** — I do the reasoning myself using your Claude/Codex seat — frontier quality, no API cost."
+   On their answer run `npx -y neuralstack mode hosted` or `npx -y neuralstack mode byom`.
+
+3. Only once `key_set` and `mode_set` are both true, proceed to the loop below. (They can switch later anytime — "use my own model" / "use default" → re-run `mode`.)
+
+Never spawn a board before the key exists, and never invent a key — it only comes from https://thinklm.vercel.app.
+
 ## The core loop
 
 Three phases. Keep them separate — mixing divergence and convergence is what strangles idea quality, and here a whole phase belongs to the human.

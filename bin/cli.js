@@ -68,6 +68,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       console.log(`✓ Saved. NeuralStack is ready (${c.url}).`);
       break;
     }
+    case "status": {
+      const c = loadCfg();
+      console.log(JSON.stringify({ key_set: !!getKey(), mode_set: !!c.mode, mode: getMode(), url: getUrl() }, null, 2));
+      break;
+    }
     case "mode": {
       const m = (rest[0] || "").toLowerCase();
       if (!m) { console.log(`mode: ${getMode()}`); break; }
@@ -136,16 +141,23 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       fs.mkdirSync(dst, { recursive: true });
       fs.copyFileSync(path.join(PKG_ROOT, "skill", "SKILL.md"), path.join(dst, "SKILL.md"));
       console.log(`✓ Skill installed at ${dst}`);
-      // Ask which reasoning mode they want — only when interactive.
+      // Mode + key are set during onboarding. When a human runs this in a real
+      // terminal we can prompt; when an AGENT runs it (no TTY) we DON'T silently
+      // default — we leave it unset so the skill onboards the user in chat.
       let m = flag("mode");
       if (!m && process.stdin.isTTY) {
         console.log(`\nWho should do the divergent reasoning?\n  1) NeuralStack default — our hosted models (zero setup, free)\n  2) Your own AI agent — frontier access via your Claude/Codex seat (no API cost)`);
         const ans = await prompt("Choose 1 or 2 [1]: ");
         m = ans === "2" ? "byom" : "hosted";
       }
-      m = m === "byom" ? "byom" : "hosted";
-      const c = loadCfg(); c.mode = m; saveCfg(c);
-      console.log(`✓ mode: ${m}. (Change anytime: npx neuralstack mode hosted|byom, or tell the skill.)\nRestart Claude, then say "use neuralstack".`);
+      if (m) { const c = loadCfg(); c.mode = m === "byom" ? "byom" : "hosted"; saveCfg(c); console.log(`✓ mode: ${c.mode}.`); }
+      const haveKey = !!getKey();
+      console.log(
+        `\nNext (the neuralstack skill will walk you through this in chat after you restart):` +
+        (haveKey ? `\n  • API key: already saved ✓` : `\n  • Get your free API key at ${getUrl()} → Settings → API key, then: npx neuralstack login tlm_xxx`) +
+        (m ? `` : `\n  • Choose reasoning: npx neuralstack mode hosted   (or  byom  to use your own frontier agent)`) +
+        `\n\nRestart Claude, then say "use neuralstack".`
+      );
       break;
     }
     default:
