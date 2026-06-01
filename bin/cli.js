@@ -140,7 +140,6 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       const dst = path.join(os.homedir(), ".claude", "skills", "neuralstack");
       fs.mkdirSync(dst, { recursive: true });
       fs.copyFileSync(path.join(PKG_ROOT, "skill", "SKILL.md"), path.join(dst, "SKILL.md"));
-      console.log(`✓ Skill installed at ${dst}`);
       // Mode + key are set during onboarding. When a human runs this in a real
       // terminal we can prompt; when an AGENT runs it (no TTY) we DON'T silently
       // default — we leave it unset so the skill onboards the user in chat.
@@ -150,14 +149,38 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
         const ans = await prompt("Choose 1 or 2 [1]: ");
         m = ans === "2" ? "byom" : "hosted";
       }
-      if (m) { const c = loadCfg(); c.mode = m === "byom" ? "byom" : "hosted"; saveCfg(c); console.log(`✓ mode: ${c.mode}.`); }
+      if (m) { const c = loadCfg(); c.mode = m === "byom" ? "byom" : "hosted"; saveCfg(c); }
       const haveKey = !!getKey();
-      console.log(
-        `\nNext (the neuralstack skill will walk you through this in chat after you restart):` +
-        (haveKey ? `\n  • API key: already saved ✓` : `\n  • Get your free API key at ${getUrl()} → Settings → API key, then: npx neuralstack login tlm_xxx`) +
-        (m ? `` : `\n  • Choose reasoning: npx neuralstack mode hosted   (or  byom  to use your own frontier agent)`) +
-        `\n\nRestart Claude, then say "use neuralstack".`
-      );
+      const haveMode = !!loadCfg().mode;
+
+      // The agent that ran this is reading this output RIGHT NOW. The skill file
+      // won't auto-load until the next session, so we direct the agent here to
+      // finish setup conversationally in THIS chat — otherwise it just relays
+      // "next steps" and the user is stranded (the exact failure we're fixing).
+      console.log(`\n✓ Skill installed at ${dst}`);
+      if (haveKey && haveMode) {
+        console.log(`\n✓ Already configured (key + mode). You're ready — say "use neuralstack" to spawn a board.`);
+      } else {
+        console.log(
+`\n────────────────────────────────────────────────────────
+AGENT: SETUP IS NOT FINISHED. Do NOT stop or just relay this.
+Complete it now, conversationally, in this same chat:
+`);
+        if (!haveKey) console.log(
+`  KEY — tell the user: "NeuralStack needs a free API key to connect."
+        Point them to ${getUrl()} (sign in → Settings → API key → Generate).
+        When they paste the tlm_… key, run:  npx -y neuralstack login <key>`);
+        if (!haveMode) console.log(
+`  MODE — ask the user how reasoning should run, and explain the trade:
+        1) Frontier — YOU (this AI agent) do the reasoning on the user's own
+           Claude/Codex quota (frontier quality, no separate bill).
+        2) Default  — NeuralStack's free hosted models do it.
+        Then run:  npx -y neuralstack mode byom   (frontier)   OR   mode hosted`);
+        console.log(
+`\n  Then confirm setup is done. (The skill also auto-loads next session for
+  "use neuralstack" triggers.)
+────────────────────────────────────────────────────────`);
+      }
       break;
     }
     default:

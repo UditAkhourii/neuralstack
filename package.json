@@ -1,6 +1,6 @@
 {
   "name": "neuralstack",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Spawn divergent-thinking whiteboards for Claude — co-think on hard problems via the NeuralStack cloud.",
   "type": "module",
   "bin": {
