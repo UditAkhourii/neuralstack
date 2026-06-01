@@ -24,8 +24,8 @@ the board, let the human think on it, then converge** from the board's
 
 ## How you drive it: the `npx` CLI (no MCP needed)
 
-Run everything through your **Bash tool** with this package, using the `github:`
-spec (works with no install/registry):
+Run everything through your **Bash tool**. The package is on npm — `npx` fetches
+it automatically, no install or MCP setup needed:
 
 ```
 npx -y neuralstack <command>
