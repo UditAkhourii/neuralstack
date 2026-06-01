@@ -12,7 +12,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 
 // NEURALSTACK_* are the canonical env vars; THINKLM_* kept as fallback.
-const API = (process.env.NEURALSTACK_API_URL || process.env.THINKLM_API_URL || "https://neuralstack.dev").replace(/\/$/, "");
+const API = (process.env.NEURALSTACK_API_URL || process.env.THINKLM_API_URL || "https://neuralstack.vercel.app").replace(/\/$/, "");
 const TOKEN = process.env.NEURALSTACK_TOKEN || process.env.THINKLM_TOKEN || "";
 
 async function api(path, init = {}) {

@@ -33,7 +33,7 @@ call returns an auth error (401 / "invalid or missing agent token"), the key
 isn't set up. STOP and onboard the user:
 
 > "To use NeuralStack thinking boards I need your NeuralStack API key.
->  1. Go to **https://neuralstack.dev** and sign in (or sign up).
+>  1. Go to **https://neuralstack.vercel.app** and sign in (or sign up).
 >  2. Open **Settings → API key → Generate** and copy the fresh `tlm_…` key.
 >  3. Paste it here, or set it as `THINKLM_TOKEN` in your MCP config."
 
@@ -43,12 +43,12 @@ the durable fix is to set it in their MCP config so they don't paste it again:
 ```json
 { "mcpServers": { "thinklm": {
   "command": "node", "args": ["<path>/mcp/server.js"],
-  "env": { "THINKLM_API_URL": "https://neuralstack.dev", "THINKLM_TOKEN": "tlm_…" }
+  "env": { "THINKLM_API_URL": "https://neuralstack.vercel.app", "THINKLM_TOKEN": "tlm_…" }
 }}}
 ```
 
 Never ask the user to invent a key — it can only be generated at
-https://neuralstack.dev.
+https://neuralstack.vercel.app.
 
 If the `thinklm` MCP server isn't installed at all, point the user to the
 NeuralStack repo's `mcp/README.md` to register it, then stop.

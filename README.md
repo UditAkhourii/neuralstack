@@ -12,7 +12,7 @@ npx neuralstack init
 ```
 
 This will:
-1. Ask for your **free NeuralStack API key** (get one at https://neuralstack.dev → Settings → API key).
+1. Ask for your **free NeuralStack API key** (get one at https://neuralstack.vercel.app → Settings → API key).
 2. Register the MCP server in your Claude config (Claude Code + Claude Desktop).
 3. Install the `neuralstack` skill into `~/.claude/skills/`.
 
@@ -38,7 +38,7 @@ npx neuralstack init --key tlm_xxx
 }
 ```
 
-`NEURALSTACK_API_URL` defaults to `https://neuralstack.dev`; set it to
+`NEURALSTACK_API_URL` defaults to `https://neuralstack.vercel.app`; set it to
 `http://localhost:3100` for local development.
 
 ## Commands
