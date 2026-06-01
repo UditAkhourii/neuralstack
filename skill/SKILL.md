@@ -1,82 +1,94 @@
 ---
 name: neuralstack
-description: >
-  NeuralStack — spawn a divergent-thinking whiteboard and co-think with the human
-  on hard, open-ended problems. Trigger when the user says "use neuralstack",
-  "neuralstack skill", "open a board", "think on a board", "brainstorm", or asks
-  for genuinely novel angles on an open-ended question (research directions,
-  product/strategy ideation, naming, "what should we work on", "directions for
-  X"), or says the obvious answers aren't good enough. Implements a baton-pass:
-  spawn a board, the human brainstorms on the canvas, then read the finished
-  board's structure and converge to an answer you couldn't have produced from
-  the bare prompt. Do NOT use for tasks with a single correct answer (math,
-  factual lookup, debugging a specific error, fixed spec).
+description: Spawn a shared divergent-thinking whiteboard and co-think with the human on hard, open-ended problems — then converge from the board's structure. Use whenever the user wants brainstorming, ideation, "give me options," research directions, product/strategy angles, naming, ways to attack a hard problem, or says they're stuck or the obvious answers aren't good enough — AND a human-in-the-loop board would beat answering cold. Trigger on "use neuralstack", "open a board", "think on a board", "let's brainstorm this together". Unlike pure ideation, this opens a real canvas the human edits alongside you, and you converge from what they actually built. Do NOT use for tasks with a single correct answer (math, factual lookup, debugging a specific error, following a fixed spec).
 ---
 
 # NeuralStack — co-thinking by baton-pass
 
-NeuralStack is a divergent-reasoning canvas. A board re-asks one question from
-many cognitive frames (first-principles, red-team, inversion, biological
-mechanism, extreme-scale, …), scores and clusters the branches, and keeps the
-survivors. The human can diverge further on the same canvas. Your job: **spawn
-the board, let the human think on it, then converge** from the board's
-*structure* — not from a flat summary.
+NeuralStack widens the search before it narrows, and it does so on a **shared canvas the human edits too**. The default failure mode in ideation is premature convergence — latching onto the first plausible answer and polishing it into something competent and forgettable. NeuralStack fights that twice: the engine fans the question out across many cognitive frames, and then the *human* adds the angles, hunches, and domain knowledge a model would never produce. Your job is to spawn that board, get out of the way while they think, and then **converge from the structure they built** — not from a flat summary you'd have written anyway.
 
-## How you drive it: the `npx` CLI (no MCP needed)
+The value of this skill is a single quantity: the **delta** between the board-informed answer and the answer you'd have given cold. If the board didn't change your conclusion, the ceremony was theater. Protect that delta — it's the whole point.
 
-Run everything through your **Bash tool**. The package is on npm — `npx` fetches
-it automatically, no install or MCP setup needed:
+## What you drive
+
+Everything runs through your **Bash tool**. The package is on npm — `npx` fetches it automatically, no install or MCP setup:
 
 ```
 npx -y neuralstack <command>
 ```
 
-Commands:
 | command | what it does |
 |---|---|
-| `login <tlm_key>` | save the user's API key (once) |
+| `login <tlm_key>` | save the user's API key (once per machine) |
 | `create "<topic>"` | spawn a board → prints JSON `{ id, preview_url }` |
-| `board <id>` | print the board (divergent tree + survivors + verdict) |
-| `wait <id>` | poll until the human marks it ready, then print it |
-| `answer <id> "<text>"` | write your converged answer back to the canvas |
+| `board <id>` | print the board: divergent tree + surviving insights + critic verdict |
+| `wait <id>` | poll until the human marks the board ready, then print it |
+| `answer <id> "<text>"` | write your converged answer back onto the canvas |
 
-## The flow
+## The core loop
 
-1. **Worth a board?** Only for open-ended / multi-unknown / novelty-seeking
-   problems. For a closed question, just answer directly.
+Three phases. Keep them separate — mixing divergence and convergence is what strangles idea quality, and here a whole phase belongs to the human.
 
-2. **Spawn.** Run:
-   ```
-   npx -y neuralstack create "<sharpened question>"
-   ```
-   - If it prints **"No NeuralStack API key found"**, STOP and onboard:
-     > "I need your free NeuralStack API key.
-     >  1. Go to **https://thinklm.vercel.app** → sign in → Settings → API key → Generate.
-     >  2. Paste it here, or run `npx -y neuralstack login tlm_xxx`."
-     Run `login` once with their key, then re-run `create`.
-   - On success, parse the JSON. Give the human the **`preview_url`** verbatim:
-     *"I've opened a NeuralStack board — open this link, it's already fanning out.
-     Add your own angles, drag, branch, and say 'done' when finished."*
-     (The preview URL needs no login and is editable.)
+**Phase 1 — Diverge (spawn, no judging).** Run `create "<sharpened question>"`. The engine fans the question out across cognitive frames (first-principles, red-team, inversion, biological mechanism, extreme-scale, market lens, naive outsider…), reasons each branch in isolation, and a critic clusters and scores them. You are *not* evaluating yet. Breadth is cheap; a missed idea is expensive.
 
-3. **Wait — don't pre-empt.** Do not answer while they think. When they say
-   "done", run `board <id>` to read it (or `wait <id>` to actively block; it may
-   print `NOT_READY_YET` — just call again).
+**Phase 2 — Hand off (the human diverges).** This phase is theirs, and it is the reason to use NeuralStack at all. Give them the `preview_url` verbatim and invite them in: *"I've opened a NeuralStack board — open this link, it's already fanning out. Add your own angles, drag, branch off anything that sparks, prune what's stale, and say 'done' when you're finished."* Then **wait**. Do not pre-empt them with your own answer; their divergence is your raw material, and answering early throws it away.
 
-4. **Read the structure, not just the text.** Attend to: the tree shape (what
-   branched from what), **clusters**, **SURVIVOR** leaves and **TRAP** flags, the
-   non-obvious-but-viable pick, the open provocation, and anything the human
-   added that you wouldn't have.
+**Phase 3 — Converge (select with judgment).** When they say "done", run `board <id>` (or `wait <id>`). Now bring the critic back: cluster, kill the dead branches, surface the few worth pursuing, name the trap. Then write a real answer with `answer <id> "…"`.
 
-5. **Converge.** Synthesize an answer that genuinely exploits the board —
-   connect survivors across clusters, resolve/avoid traps, push the provocation.
-   Aim for a conclusion you **could not** have written from the bare prompt.
+Divergence rewards "yes, and." Convergence rewards "no, because." The human owns the middle. Doing all three at once gives you none of them.
 
-6. **Write it back.** Run `answer <id> "<your answer>"` so it lands on the
-   canvas. Then present the answer in chat too.
+## Running it — the exact flow
 
-## Honesty rule
+1. **Worth a board?** Only for open-ended / multi-unknown / novelty-seeking problems where a human's input changes the answer. For a closed question, just answer directly — don't spawn a board for ceremony.
+2. **Spawn.** `npx -y neuralstack create "<sharpened question>"`.
+   - If it prints **"No NeuralStack API key found"**, stop and onboard: *"I need your free NeuralStack API key — get one at **https://thinklm.vercel.app** → Settings → API key → Generate, then paste it here."* Run `npx -y neuralstack login tlm_xxx` once, then re-run `create`.
+   - On success, parse the JSON and hand over the `preview_url` (it needs no login and is editable).
+3. **Wait — don't pre-empt.** When they say "done", read the board. `wait` may print `NOT_READY_YET` — just call it again.
+4. **Converge and write back.** Synthesize, then `npx -y neuralstack answer <id> "<your answer>"`. Present the answer in chat too.
 
-The value is the **delta**: board-informed answer minus prompt-only answer. If
-the board didn't change your conclusion, say so plainly — don't pretend the
-ceremony added insight it didn't.
+## Reading the board: structure, not just text
+
+A chat prompt gives you words; a board gives you *shape*. When you read it back, attend to the structure — it encodes thinking a flat list can't:
+
+- **The tree** — which angle branched from which. Lineage tells you what the human was chasing.
+- **Clusters** — the critic groups branches by underlying angle. The clusters *are* the map of the solution space.
+- **SURVIVOR** leaves — highest-signal, kept and deepened. Start here.
+- **TRAP** flags — attractive-but-flawed. Name these explicitly so you don't recommend one.
+- **The non-obvious-but-viable pick** and the open **provocation** — the critic's nominations for "interesting, not safe."
+- **Anything the human added** — their hunches and domain knowledge are the part you could not have generated. Weight it.
+
+## Techniques to force breadth
+
+If the board comes back thin, or you're seeding angles for the human, push attention into corners it wouldn't naturally go. Pick a few; don't grind all of them.
+
+- **Vary the frame.** Re-ask from radically different vantage points — a hardware person on a software problem, a regulator, a 10-year-old, a competitor trying to make it fail.
+- **Cross-domain transplant.** Force-fit a mechanism from a distant field: immune systems, ant colonies, futures markets, speedrunning. Distant domains encode patterns that transplant surprisingly well.
+- **Invert it.** Ask the opposite question, then negate the answers — inversion exposes assumptions the direct question hides.
+- **Push to extremes.** The $0 version, the infinite-budget version, the 1-hour vs. 10-year version. Extremes break anchoring on the reasonable middle.
+- **Remove the load-bearing assumption.** Name the thing treated as fixed; ask what's possible without it.
+- **Recombine.** Take two unrelated survivors and ask what their hybrid looks like. Most genuinely novel ideas come from recombination.
+
+## Output shape (the converge)
+
+When you present the converged answer (and write it back with `answer`):
+
+1. **Brief** — one or two lines naming the problem and any reframe, then get to it.
+2. **What the board surfaced** — the shape of the space: the clusters, with the surviving insights pulled out. Make the structure visible, not just the leaves.
+3. **The converge** — the 2–4 most promising directions, *why*, the single most interesting non-obvious one named explicitly, and any trap flagged.
+4. **One provocation** — a wild-card or open question so the human has somewhere to push if nothing landed.
+
+Resist polishing every branch to the same finish. The point is range plus a real position — not a uniform wall of prose.
+
+## Calibration
+
+- **When to spawn vs. answer cold.** A board costs the human time and attention. Spawn one when their input genuinely changes the answer; otherwise just answer. Be honest about which this is.
+- **How long to wait.** Don't rush them and don't vanish. Wait on their "done"; if you must actively block, use `wait`.
+- **How weird to go.** Read the room. Serious strategy work → keep wild cards clearly flagged. Explicit play → let it run looser. Absurd ideas earn their place by seeding viable ones — say so rather than presenting a joke as a recommendation.
+
+## Anti-patterns
+
+- **Pre-empting the human.** Answering before they've finished diverging defeats the entire baton-pass. Wait.
+- **Converging from the summary, not the structure.** If you ignore the tree/clusters/traps and just paraphrase the leaves, you've thrown away what the board was for.
+- **Convergence disguised as divergence.** If every branch shares the same assumption, the space wasn't explored — it was decorated.
+- **Refusing to commit.** After reading the board, take a position. "Here are the ideas, you decide" is a cop-out — converge with a real opinion.
+- **Faking the delta.** If the board didn't improve on the cold answer, say so plainly. Honesty about when it *didn't* help is what makes it trustworthy when it does.
