@@ -24,6 +24,18 @@ npx -y neuralstack <command>
 | `board <id>` | print the board: divergent tree + surviving insights + critic verdict |
 | `wait <id>` | poll until the human marks the board ready, then print it |
 | `answer <id> "<text>"` | write your converged answer back onto the canvas |
+| `add <id> --frame "X" --summary "…" --full "…"` | push an agent-generated branch (BYOM) |
+| `score <id>` | run the cloud critic over the board's branches |
+| `mode [hosted\|byom]` | read or set who does the reasoning |
+
+## Two reasoning modes
+
+`create` prints the current `mode`. Respect it:
+
+- **`hosted` (default):** NeuralStack's own models do the divergence. You just `create` and hand over the link — the board fans out on its own. Zero setup.
+- **`byom` (bring your own model):** **you** — the frontier model already running this session — do the divergent reasoning, then push each branch with `add`. The cloud still runs the **critic** (`score`) so structure stays consistent. This gives the user frontier-quality divergence on the seat they already pay for, no API cost.
+
+The user can switch anytime: if they say "use my own model" / "use frontier" → run `npx -y neuralstack mode byom`; "use default" / "use hosted" → `npx -y neuralstack mode hosted`. Then proceed.
 
 ## The core loop
 
@@ -40,11 +52,31 @@ Divergence rewards "yes, and." Convergence rewards "no, because." The human owns
 ## Running it — the exact flow
 
 1. **Worth a board?** Only for open-ended / multi-unknown / novelty-seeking problems where a human's input changes the answer. For a closed question, just answer directly — don't spawn a board for ceremony.
-2. **Spawn.** `npx -y neuralstack create "<sharpened question>"`.
+2. **Spawn.** `npx -y neuralstack create "<sharpened question>"`. Parse the JSON for `id`, `mode`, `preview_url`.
    - If it prints **"No NeuralStack API key found"**, stop and onboard: *"I need your free NeuralStack API key — get one at **https://thinklm.vercel.app** → Settings → API key → Generate, then paste it here."* Run `npx -y neuralstack login tlm_xxx` once, then re-run `create`.
-   - On success, parse the JSON and hand over the `preview_url` (it needs no login and is editable).
-3. **Wait — don't pre-empt.** When they say "done", read the board. `wait` may print `NOT_READY_YET` — just call it again.
-4. **Converge and write back.** Synthesize, then `npx -y neuralstack answer <id> "<your answer>"`. Present the answer in chat too.
+3. **Diverge — depends on `mode`:**
+   - **hosted:** nothing to do; the board fans out on its own.
+   - **byom:** *you* generate the branches. Pick ~6 of the frames below (always include one wild lens). For each, reason ~4–6 concrete sentences **strictly in that lens**, pushing past the obvious, then distill a 1–2 line summary. Push each with:
+     `npx -y neuralstack add <id> --frame "<Frame>" --summary "<one-liner>" --full "<reasoning>"`
+     When all branches are in, run `npx -y neuralstack score <id>` so the cloud critic clusters/scores/flags traps.
+4. **Hand off.** Give the human the `preview_url` verbatim: *"I've opened a NeuralStack board — open this link. Add your own angles, drag, branch, prune, and say 'done' when finished."* Then **wait** — do not pre-empt them.
+5. **Wait — don't pre-empt.** When they say "done", read the board with `board <id>` (`wait` may print `NOT_READY_YET` — call it again).
+6. **Converge and write back.** Synthesize from the structure, then `npx -y neuralstack answer <id> "<your answer>"`. Present the answer in chat too.
+
+### Frames for BYOM divergence (each re-asks the question from one distorted lens)
+
+- **First principles** — strip to fundamentals, rebuild only from primitives.
+- **Red team** — attack the claim until it breaks; then ask what would have to be true for it to survive.
+- **Empirical** — the cleanest experiment/observable that would settle it.
+- **Second-order** — the effects of the effects; incentives, feedback loops, unintended consequences.
+- **Inversion** — guarantee the OPPOSITE outcome, then negate each finding into an insight.
+- **Constraints** — the binding physical/economic/information limits that dictate the shape.
+- **Historical analogue** — the closest prior art in any field, and where the analogy breaks.
+- **Biological mechanism** *(wild)* — transplant a living-systems mechanism (immune response, plasticity, selection) onto the problem.
+- **Market lens** — buyers, sellers, price-setters of the scarce thing here.
+- **Naive outsider** *(wild)* — the unencumbered approach; which "obvious" conventions are unjustified.
+- **Remove the assumption** *(wild)* — delete the one load-bearing premise; reason in that world.
+- **Extreme scale** *(wild)* — push the central quantity to a limit; what new regime emerges.
 
 ## Reading the board: structure, not just text
 
