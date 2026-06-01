@@ -18,27 +18,34 @@ You ask Claude → Claude spawns a board → you get a live link
 
 Human and model never edit at the same time — it's a relay, not a shared mouse.
 
-## Install (skill-only — no MCP, no per-client config)
+## Install (one command — skill-only, no MCP, no per-client config)
 
-1. **Get a free API key:** sign in at **https://thinklm.vercel.app** → Settings → API key → Generate.
-2. **Save it once:**
-   ```bash
-   npx -y neuralstack login tlm_xxx
-   ```
-3. **Install the skill** into Claude:
-   ```bash
-   npx -y neuralstack install-skill
-   ```
-   (Copies the `neuralstack` skill into `~/.claude/skills/`.)
+Tell Claude (or any agent with a shell) to run:
 
-Then restart Claude and say *"use neuralstack to brainstorm X"*. The skill drives everything through `npx`.
+```bash
+npx -y neuralstack@latest install-skill
+```
+
+That installs the `neuralstack` skill into `~/.claude/skills/` **and** prints instructions that walk the agent through finishing setup with you, right there in chat:
+
+1. **API key** — Claude points you to **https://thinklm.vercel.app** (sign in → Settings → API key → Generate); you paste the `tlm_…` key and it runs `login` for you.
+2. **Mode** — Claude asks how you want to think:
+   - **Frontier** — the agent itself reasons, on your own Claude/Codex quota (frontier quality, no separate bill)
+   - **Default** — NeuralStack's free hosted models
+3. Done. Say *"use neuralstack to brainstorm X"* and it spawns a board.
+
+> Prefer to set it up by hand? `npx -y neuralstack login tlm_xxx` then `npx -y neuralstack mode hosted|byom`.
 
 ## How Claude drives it (the CLI)
 
 | command | what it does |
 |---|---|
+| `npx -y neuralstack status` | `{ key_set, mode_set, mode, url }` |
 | `npx -y neuralstack login <tlm_key>` | save your API key (once per machine) |
-| `npx -y neuralstack create "<topic>"` | spawn a board → prints `{ id, preview_url }` |
+| `npx -y neuralstack mode [hosted\|byom]` | read/set who reasons: hosted (NeuralStack) or byom (your agent) |
+| `npx -y neuralstack create "<topic>"` | spawn a board → prints `{ id, mode, preview_url }` |
+| `npx -y neuralstack add <id> --frame "X" --summary "…" --full "…"` | push an agent-generated branch (byom) |
+| `npx -y neuralstack score <id>` | run the cloud critic over the branches |
 | `npx -y neuralstack board <id>` | print the board: tree + surviving insights + critic verdict |
 | `npx -y neuralstack wait <id>` | poll until you mark the board ready, then print it |
 | `npx -y neuralstack answer <id> "<text>"` | write the converged answer back onto the canvas |
